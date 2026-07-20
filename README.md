@@ -98,7 +98,9 @@ all three rail tooltips to exercise Vue Vapor teardown and PocketJS sweeping.
 - `scripts/buildWeb.ts` assembles real files for the Pages artifact without
   publishing `node_modules` symlinks or the Bun development server. The Web
   artifact uses PocketJS's 2× raster profile, while the host keeps layout in
-  CSS pixels and sizes the canvas backing store for the display DPR.
+  CSS pixels and sizes the canvas backing store for the display DPR. Runtime
+  assets live under a content-hashed directory so Pages cannot mix cached
+  engine, WASM, and bundle versions.
 - `scripts/captureStates.ts` is the native-size visual and interaction harness.
 
 The architecture follows PocketJS's official

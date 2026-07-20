@@ -39,6 +39,7 @@ async function applyBrowserRuntimePatch(): Promise<void> {
       && engine.includes("wasm.renderScaled(renderScale)")
       && engine.includes("window.devicePixelRatio")
       && engine.includes("wasm.init(rasterDensity)")
+      && engine.includes('new URL("pocketjs.wasm", import.meta.url)')
       && engine.includes("let hudEnabled = true;")
       && engine.includes("hudEnabled = opts.hud !== false;")
       && engine.includes("if (opts.devtools !== false) connectDevtools();")

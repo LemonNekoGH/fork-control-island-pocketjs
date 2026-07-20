@@ -28,7 +28,7 @@ index ee8105a..1ef8a62 100644
 +    let width = width as i32 * scale;
 +    let height = height as i32 * scale;
 diff --git a/host-web/engine.js b/host-web/engine.js
-index 7dd794b..5637ff3 100644
+index 7dd794b..82808de 100644
 --- a/host-web/engine.js
 +++ b/host-web/engine.js
 @@ -8 +8 @@
@@ -151,6 +151,9 @@ index 7dd794b..5637ff3 100644
 +  canvas.addEventListener("pointerdown", onPointerDown);
 +  window.addEventListener("pointerup", onPointerUp);
 +  canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+@@ -301 +385 @@ export async function mount(theCanvas, opts = {}) {
+-  const res = await fetch("pocketjs.wasm");
++  const res = await fetch(new URL("pocketjs.wasm", import.meta.url));
 @@ -304 +388,6 @@ export async function mount(theCanvas, opts = {}) {
 -  connectDevtools();
 +  resizeCanvas();
@@ -162,6 +165,12 @@ index 7dd794b..5637ff3 100644
 @@ -317 +406 @@ export async function load(name, opts = {}) {
 -  wasm.init(); // fresh Ui: tree/styles/atlases/textures all reset
 +  wasm.init(rasterDensity); // fresh Ui: tree/styles/atlases/textures all reset
+@@ -331 +420 @@ export async function load(name, opts = {}) {
+-    const pak = await fetch("dist/" + name + ".pak");
++    const pak = await fetch(new URL("dist/" + name + ".pak", import.meta.url));
+@@ -333 +422 @@ export async function load(name, opts = {}) {
+-    const srcRes = await fetch("dist/" + name + ".js");
++    const srcRes = await fetch(new URL("dist/" + name + ".js", import.meta.url));
 diff --git a/host-web/index.html b/host-web/index.html
 index 4a26a16..e55d6bf 100644
 --- a/host-web/index.html
