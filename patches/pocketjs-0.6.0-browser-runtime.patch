@@ -28,7 +28,7 @@ index ee8105a..1ef8a62 100644
 +    let width = width as i32 * scale;
 +    let height = height as i32 * scale;
 diff --git a/host-web/engine.js b/host-web/engine.js
-index 7dd794b..1fe5169 100644
+index 7dd794b..5637ff3 100644
 --- a/host-web/engine.js
 +++ b/host-web/engine.js
 @@ -8 +8 @@
@@ -36,29 +36,37 @@ index 7dd794b..1fe5169 100644
 +// putImageData onto a window-sized canvas.
 @@ -86,0 +87 @@ let held = 0;
 +let pointerPressed = 0;
-@@ -90,0 +92 @@ let frameCb = null;
+@@ -90,0 +92,3 @@ let frameCb = null;
 +let resizeObserver = null;
-@@ -102,0 +105 @@ let hudMem = 0;
++let renderScale = 1;
++let rasterDensity = 1;
+@@ -102,0 +107 @@ let hudMem = 0;
 +let hudEnabled = true;
-@@ -166,2 +169,2 @@ function devtoolsScreenshot() {
+@@ -166,2 +171,2 @@ function devtoolsScreenshot() {
 -  shot.width = FB_W;
 -  shot.height = FB_H;
 +  shot.width = wasm.viewport.w;
 +  shot.height = wasm.viewport.h;
-@@ -169 +172 @@ function devtoolsScreenshot() {
+@@ -169 +174 @@ function devtoolsScreenshot() {
 -  const img = sctx.createImageData(FB_W, FB_H);
 +  const img = sctx.createImageData(wasm.viewport.w, wasm.viewport.h);
-@@ -201 +204,3 @@ function safeFrame() {
+@@ -201 +206,3 @@ function safeFrame() {
 -    frameCb(held, packedAnalog());
 +    const buttons = held | pointerPressed;
 +    pointerPressed = 0;
 +    frameCb(buttons, packedAnalog());
-@@ -214 +219,3 @@ function blit() {
+@@ -212 +219 @@ function blit() {
+-  imageData.data.set(wasm.render());
++  imageData.data.set(renderScale === 1 ? wasm.render() : wasm.renderScaled(renderScale));
+@@ -214 +221,6 @@ function blit() {
 -  drawHud(ctx, FB_W, FB_H, hudFps, hudMem); // built-in on-canvas overlay
 +  if (hudEnabled) {
++    ctx.save();
++    ctx.scale(renderScale, renderScale);
 +    drawHud(ctx, wasm.viewport.w, wasm.viewport.h, hudFps, hudMem);
++    ctx.restore();
 +  }
-@@ -280,0 +288,42 @@ export function pressVirtual(bit, down) {
+@@ -280,0 +293,42 @@ export function pressVirtual(bit, down) {
 +// Browser physical-pointer bridge. The app owns cursor mode and hit-testing;
 +// the host only converts CSS canvas coordinates into the logical viewport.
 +function forwardPointer(event) {
@@ -101,42 +109,59 @@ index 7dd794b..1fe5169 100644
 +  event.preventDefault();
 +}
 +
-@@ -282,0 +332,13 @@ export function pressVirtual(bit, down) {
+@@ -282,0 +337,21 @@ export function pressVirtual(bit, down) {
 +function resizeCanvas() {
 +  if (!canvas || !ctx || !wasm) return;
 +  const rect = canvas.getBoundingClientRect();
 +  const width = Math.max(1, Math.min(8192, Math.round(rect.width)));
 +  const height = Math.max(1, Math.min(8192, Math.round(rect.height)));
-+  if (canvas.width === width && canvas.height === height) return;
-+  canvas.width = width;
-+  canvas.height = height;
++  const deviceScale = Number.isFinite(window.devicePixelRatio) ? window.devicePixelRatio : 1;
++  const maximumScale = Math.max(1, Math.min(4, Math.floor(8192 / width), Math.floor(8192 / height)));
++  const nextRenderScale = Math.max(1, Math.min(Math.ceil(deviceScale), maximumScale));
++  const physicalWidth = width * nextRenderScale;
++  const physicalHeight = height * nextRenderScale;
++  if (canvas.width === physicalWidth && canvas.height === physicalHeight
++    && wasm.viewport.w === width && wasm.viewport.h === height
++    && renderScale === nextRenderScale) return;
++  renderScale = nextRenderScale;
++  canvas.width = physicalWidth;
++  canvas.height = physicalHeight;
 +  ctx.imageSmoothingEnabled = false;
-+  imageData = ctx.createImageData(width, height);
++  imageData = ctx.createImageData(physicalWidth, physicalHeight);
 +  wasm.resize(width, height);
 +}
 +
-@@ -286,0 +349 @@ export async function mount(theCanvas, opts = {}) {
+@@ -286,0 +362,6 @@ export async function mount(theCanvas, opts = {}) {
++  const requestedRasterDensity = opts.rasterDensity ?? 1;
++  if (!Number.isInteger(requestedRasterDensity) || requestedRasterDensity < 1 || requestedRasterDensity > 4) {
++    throw new RangeError(`rasterDensity must be an integer from 1 through 4, got ${requestedRasterDensity}`);
++  }
++  rasterDensity = requestedRasterDensity;
 +  hudEnabled = opts.hud !== false;
-@@ -288,2 +350,0 @@ export async function mount(theCanvas, opts = {}) {
+@@ -288,2 +368,0 @@ export async function mount(theCanvas, opts = {}) {
 -  canvas.width = FB_W;
 -  canvas.height = FB_H;
-@@ -292 +352,0 @@ export async function mount(theCanvas, opts = {}) {
+@@ -292 +370,0 @@ export async function mount(theCanvas, opts = {}) {
 -  imageData = ctx.createImageData(FB_W, FB_H);
-@@ -296,0 +357 @@ export async function mount(theCanvas, opts = {}) {
+@@ -296,0 +375 @@ export async function mount(theCanvas, opts = {}) {
 +    pointerPressed = 0;
-@@ -298,0 +360,5 @@ export async function mount(theCanvas, opts = {}) {
+@@ -298,0 +378,5 @@ export async function mount(theCanvas, opts = {}) {
 +  canvas.addEventListener("pointermove", onPointerMove);
 +  canvas.addEventListener("pointerleave", onPointerLeave);
 +  canvas.addEventListener("pointerdown", onPointerDown);
 +  window.addEventListener("pointerup", onPointerUp);
 +  canvas.addEventListener("contextmenu", (event) => event.preventDefault());
-@@ -304 +370,5 @@ export async function mount(theCanvas, opts = {}) {
+@@ -304 +388,6 @@ export async function mount(theCanvas, opts = {}) {
 -  connectDevtools();
 +  resizeCanvas();
 +  resizeObserver?.disconnect();
 +  resizeObserver = new ResizeObserver(resizeCanvas);
 +  resizeObserver.observe(canvas);
++  window.addEventListener("resize", resizeCanvas);
 +  if (opts.devtools !== false) connectDevtools();
+@@ -317 +406 @@ export async function load(name, opts = {}) {
+-  wasm.init(); // fresh Ui: tree/styles/atlases/textures all reset
++  wasm.init(rasterDensity); // fresh Ui: tree/styles/atlases/textures all reset
 diff --git a/host-web/index.html b/host-web/index.html
 index 4a26a16..e55d6bf 100644
 --- a/host-web/index.html

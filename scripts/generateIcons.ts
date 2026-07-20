@@ -4,8 +4,8 @@ import { basename, resolve } from "node:path";
 const projectRoot = resolve(import.meta.dir, "..");
 const assetsRoot = resolve(projectRoot, "assets");
 
-async function rasterize(source: string, destination: string): Promise<void> {
-  const child = Bun.spawn(["magick", "-background", "none", source, "-resize", "32x32", "-depth", "8", `PNG32:${destination}`], {
+async function rasterize(source: string, destination: string, size: number): Promise<void> {
+  const child = Bun.spawn(["magick", "-background", "none", source, "-resize", `${size}x${size}`, "-depth", "8", `PNG32:${destination}`], {
     cwd: projectRoot,
     stdout: "inherit",
     stderr: "inherit",
@@ -29,10 +29,14 @@ async function generateIcons(): Promise<void> {
       .replaceAll("#fda4af", "#e11d48")
       .replaceAll("#64748b", "#334155");
 
-    await rasterize(source, resolve(assetsRoot, `${name}-dark.png`));
     await Bun.write(temporaryLightSource, lightSvg);
     try {
-      await rasterize(temporaryLightSource, resolve(assetsRoot, `${name}-light.png`));
+      for (const density of [1, 2]) {
+        const suffix = density === 1 ? "" : "@2x";
+        const size = 32 * density;
+        await rasterize(source, resolve(assetsRoot, `${name}-dark${suffix}.png`), size);
+        await rasterize(temporaryLightSource, resolve(assetsRoot, `${name}-light${suffix}.png`), size);
+      }
     }
     finally {
       unlinkSync(temporaryLightSource);

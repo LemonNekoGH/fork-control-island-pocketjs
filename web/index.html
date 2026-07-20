@@ -42,7 +42,7 @@
   const canvas = document.getElementById("screen");
 
   try {
-    await mount(canvas, { onLog: console.log, devtools: false, hud: false });
+    await mount(canvas, { onLog: console.log, devtools: false, hud: false, rasterDensity: 2 });
     const error = await load("control-island-main");
     if (error) throw error;
     status.remove();

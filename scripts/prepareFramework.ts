@@ -7,7 +7,7 @@ const expectedVuePath = resolve(frameworkRoot, "node_modules/vue");
 const browserRuntimePatch = resolve(projectRoot, "patches/pocketjs-0.6.0-browser-runtime.patch");
 
 function applyPatch(patchPath: string, description: string): void {
-  const child = Bun.spawnSync(["patch", "-p1", "--forward", "-i", patchPath], {
+  const child = Bun.spawnSync(["patch", "-p1", "--forward", "--batch", "-i", patchPath], {
     cwd: frameworkRoot,
     stdout: "inherit",
     stderr: "inherit",
@@ -36,6 +36,9 @@ async function applyBrowserRuntimePatch(): Promise<void> {
       && engine.includes("function forwardPointer")
       && engine.includes("let pointerPressed = 0")
       && engine.includes("new ResizeObserver(resizeCanvas)")
+      && engine.includes("wasm.renderScaled(renderScale)")
+      && engine.includes("window.devicePixelRatio")
+      && engine.includes("wasm.init(rasterDensity)")
       && engine.includes("let hudEnabled = true;")
       && engine.includes("hudEnabled = opts.hud !== false;")
       && engine.includes("if (opts.devtools !== false) connectDevtools();")

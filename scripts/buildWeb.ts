@@ -21,7 +21,7 @@ function run(args: string[]): void {
 }
 
 run(["bun", resolve(frameworkRoot, "scripts/wasm.ts")]);
-run(["bun", "run", "compile"]);
+run(["bun", "run", "compile:web"]);
 
 rmSync(outputRoot, { recursive: true, force: true });
 mkdirSync(outputDist, { recursive: true });

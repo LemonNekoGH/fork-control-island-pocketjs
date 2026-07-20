@@ -8,6 +8,7 @@
     "check": "bun node_modules/@pocketjs/framework/scripts/pocket.ts check --target psp --manifest pocket.json --project-root .",
     "capture": "bun run compile && bun scripts/captureStates.ts",
     "compile": "bun node_modules/@pocketjs/framework/scripts/pocket.ts compile --target psp --manifest pocket.json --project-root .",
+    "compile:web": "bun node_modules/@pocketjs/framework/scripts/pocket.ts compile --target vita --manifest pocket.json --project-root .",
     "dev": "bun scripts/dev.ts",
     "build:web": "bun scripts/buildWeb.ts",
     "icons": "bun scripts/generateIcons.ts",

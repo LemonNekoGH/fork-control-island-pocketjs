@@ -87,7 +87,7 @@ all three rail tooltips to exercise Vue Vapor teardown and PocketJS sweeping.
 
 - `app.tsx` contains the native Vue Vapor component and state machines.
 - `assets/*.svg` are editable original vectors; `bun run icons` produces the
-  light and dark PNG textures consumed by PocketJS's baked asset pipeline.
+  light and dark 1×/2× PNG textures consumed by PocketJS's baked asset pipeline.
 - `scripts/prepareFramework.ts` supplies the package-local Vue path expected by
   the published PocketJS 0.6 compiler and applies the narrowly scoped framework
   patches during installation.
@@ -96,7 +96,9 @@ all three rail tooltips to exercise Vue Vapor teardown and PocketJS sweeping.
   options as one clean patch against the published PocketJS 0.6.0 package. It
   does not fork or vendor PocketJS.
 - `scripts/buildWeb.ts` assembles real files for the Pages artifact without
-  publishing `node_modules` symlinks or the Bun development server.
+  publishing `node_modules` symlinks or the Bun development server. The Web
+  artifact uses PocketJS's 2× raster profile, while the host keeps layout in
+  CSS pixels and sizes the canvas backing store for the display DPR.
 - `scripts/captureStates.ts` is the native-size visual and interaction harness.
 
 The architecture follows PocketJS's official
