@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Control Island</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root { color-scheme: dark; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: #020617;
+  }
+  #screen {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    touch-action: none;
+  }
+  #status {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    color: #cbd5e1;
+    font: 500 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    text-align: center;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="screen"></canvas>
+<div id="status">Loading PocketJS…</div>
+<script type="module">
+  import { mount, load } from "./engine.js";
+
+  const status = document.getElementById("status");
+  const canvas = document.getElementById("screen");
+
+  try {
+    await mount(canvas, { onLog: console.log, devtools: false, hud: false });
+    const error = await load("control-island-main");
+    if (error) throw error;
+    status.remove();
+  } catch (error) {
+    console.error(error);
+    status.textContent = `Control Island failed to load: ${error instanceof Error ? error.message : error}`;
+  }
+</script>
+</body>
+</html>

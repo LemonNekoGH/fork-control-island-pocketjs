@@ -9,9 +9,10 @@
     "capture": "bun run compile && bun scripts/captureStates.ts",
     "compile": "bun node_modules/@pocketjs/framework/scripts/pocket.ts compile --target psp --manifest pocket.json --project-root .",
     "dev": "bun scripts/dev.ts",
-    "dev:codesandbox": "bun scripts/dev.ts --reuse-wasm",
+    "build:web": "bun scripts/buildWeb.ts",
     "icons": "bun scripts/generateIcons.ts",
     "postinstall": "bun scripts/prepareFramework.ts",
+    "preview:web": "bun scripts/previewWeb.ts",
     "typecheck": "bun node_modules/typescript/bin/tsc --noEmit",
     "wasm": "bun node_modules/@pocketjs/framework/scripts/wasm.ts"
   },

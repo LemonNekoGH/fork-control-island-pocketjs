@@ -7,13 +7,12 @@ light/dark palettes, and 500/400ms drawer transforms of the current AIRI
 component. PocketJS's cross-backend rendering contract does not expose
 backdrop blur, so the translucent desktop glass is represented by
 alpha-composited native surfaces, subtle border translucency, and a one-pixel
-reflected highlight. This keeps the same
-contrast hierarchy on the WebAssembly and PSP renderers without pretending an
-unsupported framebuffer blur exists.
+reflected highlight. This keeps the same contrast hierarchy across PocketJS
+renderers without pretending an unsupported framebuffer blur exists.
 
 The portable build supports both native virtual-cursor input and desktop mouse
 input. Analog movement enables PocketJS cursor mode; the patched web host maps
-physical pointer coordinates into the logical 480×272 viewport and maps the
+physical pointer coordinates into the current canvas viewport and maps the
 primary button to Circle. D-pad input exits cursor mode so focus navigation
 remains deterministic. The eye control enables real cursor-hover stage fading,
 and an expanded island collapses after the cursor stays outside it for 1.5
@@ -21,12 +20,12 @@ seconds. Hover fade uses a 250ms ease-out transition. Triangle remains the
 explicit portable back action. Window actions
 open visible host simulations instead of calling Electron IPC.
 
-The app renders at PocketJS's native PSP-sized 480×272 viewport. Because the
-desktop component's full vertical layout is taller than that viewport, the
-expanded drawer opens immediately to the left of the persistent rail. The
-desktop-only Electron actions are represented by deterministic portable
-surfaces: settings, chat, profile, microphone controls, stage movement, and a
-host-intercepted close request.
+The Web renderer follows the browser canvas at arbitrary window sizes. The
+portable component keeps its 40×40 control geometry while the surrounding
+stage and expanded layout respond to the available viewport. Desktop-only
+Electron actions are represented by deterministic portable surfaces: settings,
+chat, profile, microphone controls, stage movement, and a host-intercepted close
+request.
 
 ## Run
 
@@ -43,6 +42,27 @@ ImageMagick 7 (`magick`) is required for icon generation and PNG capture.
 
 Open the printed local URL. Arrow keys move focus; Enter or Z activates Circle;
 S activates Triangle and closes the active surface or collapses the drawer.
+
+## GitHub Pages
+
+The repository publishes a static PocketJS Web build through GitHub Actions.
+Before the first deployment, open the repository's **Settings → Pages** page
+and select **GitHub Actions** as the build source. A push to `main` then builds
+the patched WebAssembly renderer, compiles the Vue Vapor app, and deploys the
+result to:
+
+```text
+https://lemonnekogh.github.io/fork-control-island-pocketjs/
+```
+
+Build and preview the same artifact locally with:
+
+```sh
+bun run build:web
+bun run preview:web
+```
+
+The generated `site/` directory is disposable and is not committed.
 
 ## Deterministic visual QA
 
@@ -71,37 +91,13 @@ all three rail tooltips to exercise Vue Vapor teardown and PocketJS sweeping.
 - `scripts/prepareFramework.ts` supplies the package-local Vue path expected by
   the published PocketJS 0.6 compiler and applies the narrowly scoped framework
   patches during installation.
-- `patches/pocketjs-0.6.0-cursor-host.patch` adds host-positioned virtual cursor
-  input and physical-pointer forwarding.
-- `patches/pocketjs-0.6.0-devtools-tree.patch` adds a defensive DevTools tree
-  boundary for browser-native Vapor anchors.
-- `patches/pocketjs-0.6.0-sweep-tree.patch` prevents those foreign anchors from
-  entering native-node retention and destruction traversal. The patches do not
-  fork or vendor PocketJS.
-- `patches/pocketjs-0.6.0-server-host.patch` makes the development server host
-  configurable so cloud preview proxies can reach it.
+- `patches/pocketjs-0.6.0-browser-runtime.patch` applies host pointer input,
+  Vue Vapor tree guards, the responsive viewport renderer, and static-host
+  options as one clean patch against the published PocketJS 0.6.0 package. It
+  does not fork or vendor PocketJS.
+- `scripts/buildWeb.ts` assembles real files for the Pages artifact without
+  publishing `node_modules` symlinks or the Bun development server.
 - `scripts/captureStates.ts` is the native-size visual and interaction harness.
-
-## CodeSandbox
-
-Import the repository into a CodeSandbox Devbox. Its Dev Container installs
-[mise](https://mise.jdx.dev/), which then installs the pinned Bun and Rust
-toolchains from `.mise.toml`. CodeSandbox setup tasks install packages, apply
-the PocketJS patches, build the WebAssembly host once, and validate the project.
-The `PocketJS Playground` task then starts an externally reachable preview on
-port 8130.
-
-After publishing the repository to GitHub, either use CodeSandbox's **Import
-Repository** action or open
-`https://codesandbox.io/p/github/<owner>/<repository>`. Wait for the setup tasks
-to finish, then share the preview created by `PocketJS Playground`. CodeSandbox
-documents both [GitHub repository imports](https://codesandbox.io/blog/get-started-with-hacktoberfest)
-and [Dev Container support](https://codesandbox.io/blog/introducing-dev-container-support-in-codesandbox).
-
-Use `HOST=0.0.0.0 PORT=8130 bun run dev:codesandbox` manually if the automatic
-task is stopped. The regular `bun run dev` command rebuilds the WebAssembly host
-for local framework development. CodeSandbox startup reuses the setup-built
-host; run `bun run wasm` there only when rebuilding that host is intentional.
 
 The architecture follows PocketJS's official
 [getting-started guide](https://pocketjs.dev/docs/getting-started/) and
