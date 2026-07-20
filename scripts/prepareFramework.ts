@@ -8,6 +8,7 @@ const cursorHostPatch = resolve(projectRoot, "patches/pocketjs-0.6.0-cursor-host
 const devtoolsTreePatch = resolve(projectRoot, "patches/pocketjs-0.6.0-devtools-tree.patch");
 const sweepTreePatch = resolve(projectRoot, "patches/pocketjs-0.6.0-sweep-tree.patch");
 const serverHostPatch = resolve(projectRoot, "patches/pocketjs-0.6.0-server-host.patch");
+const responsiveWebPatch = resolve(projectRoot, "patches/pocketjs-0.6.0-responsive-web.patch");
 
 function applyPatch(patchPath: string, description: string): void {
   const child = Bun.spawnSync(["patch", "-p1", "--forward", "-i", patchPath], {
@@ -67,6 +68,28 @@ async function applyServerHostPatch(): Promise<void> {
   if (!await patchApplied()) throw new Error("PocketJS server host patch verification failed");
 }
 
+async function applyResponsiveWebPatch(): Promise<void> {
+  const rasterSource = resolve(frameworkRoot, "core/src/raster.rs");
+  const wasmSource = resolve(frameworkRoot, "wasm/src/lib.rs");
+  const engineSource = resolve(frameworkRoot, "host-web/engine.js");
+  const shellSource = resolve(frameworkRoot, "host-web/index.html");
+  const vaporSource = resolve(frameworkRoot, "src/index-vue-vapor.ts");
+  const inputSource = resolve(frameworkRoot, "src/input.ts");
+  const patchApplied = async () => (
+    (await Bun.file(rasterSource).text()).includes("pub fn render_viewport_scaled")
+    && (await Bun.file(wasmSource).text()).includes("pub extern \"C\" fn ui_set_viewport")
+    && (await Bun.file(engineSource).text()).includes("new ResizeObserver(resizeCanvas)")
+    && (await Bun.file(shellSource).text()).includes("width: 100vw")
+    && !(await Bun.file(shellSource).text()).includes("data-btn")
+    && (await Bun.file(vaporSource).text()).includes("__subscribeViewport")
+    && (await Bun.file(inputSource).text()).includes("const viewportWidth = vp ? vp.w : SCREEN_W")
+  );
+  if (await patchApplied()) return;
+
+  applyPatch(responsiveWebPatch, "responsive Web viewport");
+  if (!await patchApplied()) throw new Error("PocketJS responsive Web viewport patch verification failed");
+}
+
 function linkFrameworkVueRuntime(): void {
   if (existsSync(expectedVuePath)) return;
   mkdirSync(dirname(expectedVuePath), { recursive: true });
@@ -80,3 +103,4 @@ await applyCursorHostPatch();
 await applyDevtoolsTreePatch();
 await applySweepTreePatch();
 await applyServerHostPatch();
+await applyResponsiveWebPatch();

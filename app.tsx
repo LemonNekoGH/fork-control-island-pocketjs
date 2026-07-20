@@ -17,6 +17,8 @@ import {
   setCursorPosition,
 } from "@pocketjs/framework/vue-vapor/input";
 import { analogX, analogY, onButtonPress, onFrame } from "@pocketjs/framework/vue-vapor/lifecycle";
+import { getOps } from "@pocketjs/framework/vue-vapor";
+import { hostViewport } from "@pocketjs/framework/host";
 
 const ICONS = {
   chat: { dark: "assets/chat-dark.png", light: "assets/chat-light.png" },
@@ -97,8 +99,12 @@ function cursorInsideControls(drawerVisible: boolean): boolean {
   const x = cursorX();
   const y = cursorY();
   if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
-  const insideRail = x >= 432 && x < 472 && y >= 136 && y < 264;
-  const insideDrawer = drawerVisible && x >= 270 && x < 424 && y >= 64 && y < 264;
+  const viewport = hostViewport(getOps()) ?? { w: 480, h: 272 };
+  const insideRail = x >= viewport.w - 48 && x < viewport.w - 8
+    && y >= viewport.h - 136 && y < viewport.h - 8;
+  const insideDrawer = drawerVisible
+    && x >= viewport.w - 210 && x < viewport.w - 56
+    && y >= viewport.h - 208 && y < viewport.h - 8;
   return insideRail || insideDrawer;
 }
 
