@@ -48,11 +48,11 @@ S activates Triangle and closes the active surface or collapses the drawer.
 The repository publishes a static PocketJS Web build through GitHub Actions.
 Before the first deployment, open the repository's **Settings → Pages** page
 and select **GitHub Actions** as the build source. A push to `main` then builds
-the patched WebAssembly renderer, compiles the Vue Vapor app, and deploys the
-result to:
+the patched WebAssembly renderer, compiles the Vue Vapor app, and reports the
+deployment URL in the Actions summary. This repository is live at:
 
 ```text
-https://lemonnekogh.github.io/fork-control-island-pocketjs/
+https://blog.lemonneko.moe/fork-control-island-pocketjs/
 ```
 
 Build and preview the same artifact locally with:
