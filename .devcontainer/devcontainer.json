@@ -1,0 +1,10 @@
+{
+  "name": "PocketJS Vue Vapor",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "features": {
+    "ghcr.io/devcontainers-extra/features/mise:1": {}
+  }
+}
